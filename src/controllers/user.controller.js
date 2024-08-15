@@ -85,6 +85,9 @@ export const getUserFavoriteProperties = async(req,res)=>{
     })
     .exec(); // Ensure to execute the query
 
+    // -- ##reference -- please refer for rental schema
+    // console.log(favouriteProperties.favourites[0]?.price);
+
   if (!favouriteProperties) {
     return res.status(404).json({ message: 'User not found' });
   }
