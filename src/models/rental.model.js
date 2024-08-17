@@ -17,6 +17,10 @@ const rentalSchema = new Schema({
         type:Date,
         required: true
     },
+    total_cost:{
+        type:Number,
+        required: true
+    },
     status:{
         type:String,
         enum:['active', 'completed', 'cancelled' ],
