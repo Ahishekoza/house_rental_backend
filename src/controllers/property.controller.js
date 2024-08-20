@@ -24,6 +24,7 @@ export const registerProperty = async (req, res) => {
       propertyType,
       rooms_beds,
       features,
+      totalGuests
     } = req.body;
     const imageFiles = req.files;
 
@@ -65,6 +66,7 @@ export const registerProperty = async (req, res) => {
       rooms_beds: rooms_beds,
       images: imageUrls,
       features: features || [],
+      totalGuests: totalGuests
     });
 
     await newProperty.save();
@@ -81,6 +83,7 @@ export const getProperties = async (req, res) => {
   try {
     const {
       city,
+      country,
       minPrice,
       maxPrice,
       propertyType,
@@ -88,13 +91,26 @@ export const getProperties = async (req, res) => {
       beds,
       bathrooms,
       features,
+      totalGuests
     } = req.query;
+
+  
 
     let query = {};
 
     if (city) {
       query["location.city"] = new RegExp(city, "i");
     }
+
+    if (country) {
+      query["location.country"] = new RegExp(country, "i");
+    }
+
+
+    if (totalGuests) {
+      query.totalGuests = { $gte: parseInt(totalGuests,10) };
+    }
+    
 
     if (minPrice || maxPrice) {
       query.price = {};
@@ -126,8 +142,10 @@ export const getProperties = async (req, res) => {
         .split(",")
         .map((feature) => new RegExp(feature, "i"));
 
-      query.features = { $all: selectedFeatures };
+      query.features = { $in: selectedFeatures };
     }
+
+    console.log(query);
 
     const page = parseInt(req.params.page, 10) || 1;
     const pageSize = 10;

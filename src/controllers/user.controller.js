@@ -1,27 +1,59 @@
 import { UserSchema } from "../models/user.model.js";
+import crypto from 'crypto'
+import { sendOTP } from "../utils/sendOtp.js";
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role, favourites } = req.body;
+    const { email, role, favourites } = req.body;
 
     const existingUser = await UserSchema.findOne({ email: email });
     if (existingUser)
       res.status(201).json({ message: "User already registered" });
 
+    // --- otp type is string when its get saved in the database
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const otpExpiresAt = new Date(Date.now() + 10 * 60000)
+
     const user = new UserSchema({
-      name: name,
       email: email,
-      password: password,
+      otp:otp,
+      otpExpiresAt:otpExpiresAt,
       role: role,
       favourites: favourites || [],
     });
 
     await user.save();
-    res.status(200).json(user);
+    await sendOTP(email, otp);
+
+    res.status(200).send("OTP sent. Please verify your email.");
   } catch (err) {
     res.status(404).json({ message: err.message });
   }
 };
+
+
+export const verifyOTPandsetPassword = async(req,res)=>{
+  try {
+    const {email,otp, password} = req.body;
+
+    const user = await UserSchema.findOne({email:email,otp:otp,otpExpiresAt:{$gt:new Date()}})
+
+    if (!user) return res.status(400).json({ message: "Invalid or expired OTP." });
+
+    user.password = password;
+    user.verified = true;
+    user.otp = undefined;
+    user.otpExpiresAt = undefined;
+
+    await user.save();
+
+    res.status(200).json({ message: "Registration completed. You can now log in." });
+
+  } catch (error) {
+    res.status(404).json({ message: error.message });
+  }
+}
+
 
 export const loginUser = async (req, res) => {
   try {
