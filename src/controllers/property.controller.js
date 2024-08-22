@@ -145,7 +145,6 @@ export const getProperties = async (req, res) => {
       query.features = { $in: selectedFeatures };
     }
 
-    console.log(query);
 
     const page = parseInt(req.params.page, 10) || 1;
     const pageSize = 10;
