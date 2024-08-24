@@ -20,7 +20,7 @@ const propertySchema = new Schema(
     },
     propertyType: {
       type: String,
-      enum: ["Flat", "House", "GuestHouse", "Hotel"],
+      enum: ["Room", "Entire Home", "Hotel"],
     },
     rooms_beds: {
       rooms: { type: String, required: true },

@@ -1,6 +1,10 @@
 import mongoose, { Schema } from "mongoose";
-import bcrypt from "bcrypt";
+// import bcrypt from "bcrypt";
+import dotenv from "dotenv";
+import CryptoJs from "crypto-js";
 import JWT from "jsonwebtoken";
+
+dotenv.config();
 
 const userSchema = new Schema(
   {
@@ -44,14 +48,27 @@ userSchema.pre("save", async function (next) {
   try {
     if (!this.isModified("password")) return next();
 
-    this.password = await bcrypt.hash(this.password, 10);
+    const encryptedPassword = CryptoJs.AES.encrypt(
+      this.password,
+      process.env.SECRET_KEY
+    ).toString();
+
+    this.password = encryptedPassword;
   } catch (error) {
     next(error);
   }
 });
 
 userSchema.methods.isPasswordCorrect = async function (password) {
-  return await bcrypt.compare(password, this.password);
+ try {
+  const bytes =  CryptoJs.AES.decrypt(this.password,process.env.SECRET_KEY)
+  console.log(bytes);
+  const decryptedPassword = bytes.toString(CryptoJs.enc.Utf8)
+  console.log(decryptedPassword);
+  return password === decryptedPassword
+ } catch (error) {
+  return false;
+ }
 };
 
 userSchema.methods.generateJWTtoken = async function () {
