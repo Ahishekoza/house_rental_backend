@@ -90,11 +90,9 @@ export const loginUser = async (req, res) => {
 
     if (!user) throw new Error("User does not exist");
 
-    if (password !=="") {
-      const isPasswordValid = await user.isPasswordCorrect(password);
+    const isPasswordValid = await user.isPasswordCorrect(password);
 
-      if (!isPasswordValid) throw new Error("Password is incorrect");
-    }
+    if (!isPasswordValid) throw new Error("Password is incorrect");
 
     const token = await user.generateJWTtoken();
 
@@ -116,15 +114,18 @@ export const deleteUser = async (req, res) => {
     const deleted_user = await UserSchema.findOneAndDelete({ email: email });
 
     if (deleted_user) {
-      return res.status(200).json({ message: "User deleted successfully", success: true });
+      return res
+        .status(200)
+        .json({ message: "User deleted successfully", success: true });
     } else {
-      return res.status(404).json({ message: "User not found", success: false });
+      return res
+        .status(404)
+        .json({ message: "User not found", success: false });
     }
   } catch (error) {
     res.status(500).json({ message: error.message, success: false });
   }
 };
-
 
 export const registerUsersFavoriteProperities = async (req, res) => {
   // --- logged in user which we will get once we decode the JWT token

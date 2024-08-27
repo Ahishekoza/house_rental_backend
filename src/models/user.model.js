@@ -62,9 +62,7 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.isPasswordCorrect = async function (password) {
  try {
   const bytes =  CryptoJs.AES.decrypt(this.password,process.env.SECRET_KEY)
-  console.log(bytes);
   const decryptedPassword = bytes.toString(CryptoJs.enc.Utf8)
-  console.log(decryptedPassword);
   return password === decryptedPassword
  } catch (error) {
   return false;
