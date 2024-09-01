@@ -108,12 +108,14 @@ export const loginUser = async (req, res) => {
   }
 };
 
+// @TODO :- if user is deleted then property should also get deleted
 export const deleteUser = async (req, res) => {
   try {
     const { email } = req.body;
     const deleted_user = await UserSchema.findOneAndDelete({ email: email });
 
     if (deleted_user) {
+      
       return res
         .status(200)
         .json({ message: "User deleted successfully", success: true });

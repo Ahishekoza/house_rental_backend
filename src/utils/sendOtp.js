@@ -16,8 +16,8 @@ export const sendOTP = async(email,otp)=>{
         const mailOptions ={
             from:process.env.USER_EMAIL,
             to:email,
-            subject:'Your OTP Code',
-            text: `Your OTP code is ${otp}`,
+            subject:'Airbnb OTP Code',
+            text: `Your Airbnb OTP code is ${otp}`,
         }
 
         await transporter.sendMail(mailOptions)

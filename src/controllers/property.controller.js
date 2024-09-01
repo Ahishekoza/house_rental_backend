@@ -1,7 +1,6 @@
 import { PropertySchema } from "../models/property.model.js";
 import {
   deleteImageFromCloudinary,
-  updateImageOnCloudinary,
   uploadImageOnCloudinary,
 } from "../utils/cloudinary.util.js";
 import fs from "fs";
