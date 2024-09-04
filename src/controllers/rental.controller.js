@@ -3,33 +3,28 @@ import moment from "moment";
 import { days_difference, format_Date } from "../utils/format_date.js";
 import { PropertySchema } from "../models/property.model.js";
 
-
-
-const propertyPrice = async(property_id)=>{
+const propertyPrice = async (property_id) => {
   try {
-   const property_price =  await PropertySchema.findOne({_id: property_id}).select("price -_id")
-   return property_price?.price
+    const property_price = await PropertySchema.findOne({
+      _id: property_id,
+    }).select("price -_id");
+    return property_price?.price;
   } catch (error) {
-    throw new Error("Error while getting the price of a property")
+    throw new Error("Error while getting the price of a property");
   }
-}
+};
 
-
-export const rent_a_Property = async (req, res) => {
-  // -- first check the status of the property and see if its rented and if yes then show the end_date when property will get free
-
-  // --- get the property_id , user who wants to rent the property , start and end date
-  // --- on the basis of start and end date send the total amount to the user
-
+// --- if the property is available its true and if not the false
+export const checkThePropertyAvailability = async (req, res) => {
+  // ---- get the start date , end date and property id
+  // --- format the date and check the availability of the property
   try {
-    const { property_id, tenant, start_date, end_date } = req.body;
+    const { property_id, startDate, endDate } = req.body;
 
-    const formattedStartDate = format_Date(start_date);
-    const formattedEndDate = format_Date(end_date);
+    const formattedStartDate = format_Date(startDate);
+    const formattedEndDate = format_Date(endDate);
 
-    const booked_for_no_days = days_difference(formattedStartDate, formattedEndDate);
-
-    // ---- valid date
+    // ---- check the availability of the property
     if (moment(formattedStartDate).isAfter(formattedEndDate)) {
       return res.status(400).send("Start date must be before end date");
     }
@@ -50,25 +45,54 @@ export const rent_a_Property = async (req, res) => {
     });
 
     if (alreadyRented) {
-      const availableDate = moment(alreadyRented.end_date).format("YYYY-MM-DD");
-
-      return res
-        .status(404)
-        .send(
-          `Property is already rented will be avalible after ${availableDate}`
-        );
+      const availableDate = moment(formattedEndDate).format("YYYY-MM-DD");
+      
+      return res.status(200).json({
+        message: `Property is already rented will be avalible after ${availableDate}`,
+        success:false
+      });
     }
 
+    return res.status(200).json({
+      success:true
+    })
+
+  } catch (error) {
+    return res.status(404).send("Error : " + error.message);
+  }
+};
+
+export const rentAProperty = async (req, res) => {
+  // -- first check the status of the property and see if its rented and if yes then show the end_date when property will get free
+
+  // --- get the property_id , user who wants to rent the property , start and end date
+  // --- on the basis of start and end date send the total amount to the user
+
+  try {
+    const { property_id, tenant, start_date, end_date } = req.body;
+
+    const formattedStartDate = format_Date(start_date);
+    const formattedEndDate = format_Date(end_date);
+
+    const booked_for_no_days = days_difference(
+      formattedStartDate,
+      formattedEndDate
+    );
+
+    // ---- valid date
+    if (moment(formattedStartDate).isAfter(formattedEndDate)) {
+      return res.status(400).send("Start date must be before end date");
+    }
 
     // ---- Get the property price
-    const property_price = await propertyPrice(property_id)
+    const property_price = await propertyPrice(property_id);
 
     const new_rent = new RentalSchema({
       property_id: property_id,
       start_date: formattedStartDate,
       end_date: formattedEndDate,
       tenant: tenant,
-      total_cost:booked_for_no_days* property_price,
+      total_cost: booked_for_no_days * property_price,
       status: "active",
     });
 
@@ -93,13 +117,13 @@ export const getTenantRentalHistory = async (req, res) => {
       path: "property_id",
     });
 
-    const currentDate = new Date()
+    const currentDate = new Date();
 
-    userRentalHistory.forEach(async rented_date_passed => {
-      if(rented_date_passed.end_date < currentDate ){
-        rented_date_passed.status = "completed"
+    userRentalHistory.forEach(async (rented_date_passed) => {
+      if (rented_date_passed.end_date < currentDate) {
+        rented_date_passed.status = "completed";
 
-        await rented_date_passed.save()
+        await rented_date_passed.save();
       }
     });
 

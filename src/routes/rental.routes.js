@@ -1,9 +1,9 @@
 import express from 'express';
-import { getTenantRentalHistory, rent_a_Property } from '../controllers/rental.controller.js';
+import { checkThePropertyAvailability, getTenantRentalHistory, rentAProperty } from '../controllers/rental.controller.js';
 const rentalRoute  =  express.Router();
 
-
-rentalRoute.post('/rent-property',rent_a_Property)
+rentalRoute.post('/check-availability', checkThePropertyAvailability)
+rentalRoute.post('/rent-property',rentAProperty)
 rentalRoute.get('/rentals/:user_id',getTenantRentalHistory)
 
 

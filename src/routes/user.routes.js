@@ -15,11 +15,7 @@ const userRoute = express.Router();
 userRoute.post("/register", registerUser);
 userRoute.post("/verify-otp", verifyOTP);
 userRoute.get("/verify-token", verifyToken, (req, res) => {
-  if (req.user_id !== "") {
-    res.status(200).json({ message: "Token Valid", success: true });
-  } else {
-    res.status(200).json({ message: "Token expired", success: false });
-  }
+  res.status(200).json({ message: "Token Valid", success: true });
 });
 userRoute.post("/set-user-password", setUserPassword);
 userRoute.post("/login", loginUser);
