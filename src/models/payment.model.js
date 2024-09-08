@@ -4,7 +4,8 @@ const paymentSchema =  new Schema({
     rented_property:{
         type:mongoose.Schema.Types.ObjectId,
         ref:'Rental'
-    },
+    }
+    
     
 },{
     timestamps: true,

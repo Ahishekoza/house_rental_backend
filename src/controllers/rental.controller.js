@@ -18,6 +18,7 @@ const propertyPrice = async (property_id) => {
 export const checkThePropertyAvailability = async (req, res) => {
   // ---- get the start date , end date and property id
   // --- format the date and check the availability of the property
+
   try {
     const { property_id, startDate, endDate } = req.body;
 
@@ -46,17 +47,16 @@ export const checkThePropertyAvailability = async (req, res) => {
 
     if (alreadyRented) {
       const availableDate = moment(formattedEndDate).format("YYYY-MM-DD");
-      
+
       return res.status(200).json({
         message: `Property is already rented will be avalible after ${availableDate}`,
-        success:false
+        success: false,
       });
     }
 
     return res.status(200).json({
-      success:true
-    })
-
+      success: true,
+    });
   } catch (error) {
     return res.status(404).send("Error : " + error.message);
   }
