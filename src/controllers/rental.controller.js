@@ -98,7 +98,7 @@ export const rentAProperty = async (req, res) => {
 
     await new_rent.save();
 
-    return res.status(200).send("Property Rented successfully !!");
+    return res.status(200).json({message:"Property Rented successfully !!",success:true});
 
     // --- keep the rented_property for 90 days from the end date and if user rents the same property again with in  90 days
   } catch (error) {

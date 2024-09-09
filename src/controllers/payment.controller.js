@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import dotenv from "dotenv";
+import { format_Date } from "../utils/format_date.js";
 
 dotenv.config();
 
@@ -16,7 +17,12 @@ export const checkOutSession = async (req, res) => {
       propertyDescription,
       propertyImages,
       totalAmount,
+      startDate,
+      endDate
     } = req.body;
+
+    const formatedStartDate = format_Date(startDate,true)
+    const formattedEndDate = format_Date(endDate,true)
 
     const customer = await stripe.customers.create({
       metadata: {
@@ -45,7 +51,7 @@ export const checkOutSession = async (req, res) => {
       ],
       mode: "payment",
       customer: customer?.id,
-      success_url: `${process.env.CLIENT_URL}/SuccessFullCheckOut/${propertyId}`,
+      success_url: `${process.env.CLIENT_URL}/SuccessFullCheckOut/${propertyId}/${formatedStartDate}/${formattedEndDate}`,
       cancel_url: `${process.env.CLIENT_URL}/FailedCheckOut`,
     });
 
