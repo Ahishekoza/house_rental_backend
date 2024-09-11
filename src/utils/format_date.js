@@ -1,12 +1,7 @@
-export const format_Date = (originalDateStr, startEndDate) => {
+export const format_Date = (originalDateStr) => {
   const date = new Date(originalDateStr);
 
-  if (startEndDate) {
-    return date.toISOString().split("T")[0];
-  } else {
-    // Format the date as an ISO string
-    return date.toISOString();
-  }
+  return date.toISOString();
 };
 
 export const days_difference = (startDate, endDate) => {

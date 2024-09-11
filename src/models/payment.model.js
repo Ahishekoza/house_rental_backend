@@ -1,12 +1,32 @@
 import mongoose , {Schema} from 'mongoose'
 
 const paymentSchema =  new Schema({
-    rented_property:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Rental'
+    propertyId:{
+        type:String,
+        required:true,
+    },
+    owner:{
+        type:String,
+        required:true,
+    },
+    tenant:{
+        type:String,
+        required:true,
+    },
+    totalAmount:{
+        type:Number,
+        required:true
+    },
+    customerId:{
+        type:String,
+        required:true
+    },
+    phoneNumber:{
+        type:Number,
+        required:true
     }
-    
-    
+
+
 },{
     timestamps: true,
 })

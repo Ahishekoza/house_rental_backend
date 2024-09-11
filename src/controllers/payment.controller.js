@@ -4,9 +4,7 @@ import { format_Date } from "../utils/format_date.js";
 
 dotenv.config();
 
-const stripe = new Stripe(
-  String(process.env.STRIPE_SECRET_KEY)
-);
+const stripe = new Stripe(String(process.env.STRIPE_SECRET_KEY));
 
 export const checkOutSession = async (req, res) => {
   // --- verify token and you will receive the user_Id
@@ -18,11 +16,10 @@ export const checkOutSession = async (req, res) => {
       propertyImages,
       totalAmount,
       startDate,
-      endDate
+      endDate,
     } = req.body;
 
-    const formatedStartDate = format_Date(startDate,true)
-    const formattedEndDate = format_Date(endDate,true)
+
 
     const customer = await stripe.customers.create({
       metadata: {
@@ -40,6 +37,9 @@ export const checkOutSession = async (req, res) => {
           price_data: {
             currency: "usd",
             product_data: {
+              metadata: {
+                id: propertyId,
+              },
               name: propertyName,
               images: [...propertyImages],
               description: propertyDescription,
@@ -51,7 +51,7 @@ export const checkOutSession = async (req, res) => {
       ],
       mode: "payment",
       customer: customer?.id,
-      success_url: `${process.env.CLIENT_URL}/SuccessFullCheckOut/${propertyId}/${formatedStartDate}/${formattedEndDate}`,
+      success_url: `${process.env.CLIENT_URL}/SuccessFullCheckOut/${propertyId}/${startDate}/${endDate}`,
       cancel_url: `${process.env.CLIENT_URL}/FailedCheckOut`,
     });
 

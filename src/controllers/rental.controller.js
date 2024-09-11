@@ -69,28 +69,18 @@ export const rentAProperty = async (req, res) => {
   // --- on the basis of start and end date send the total amount to the user
 
   try {
-    const { property_id, tenant, start_date, end_date } = req.body;
+    const { property_id, tenant, startDate, endDate } = req.body;
 
-    const formattedStartDate = format_Date(start_date);
-    const formattedEndDate = format_Date(end_date);
-
-    const booked_for_no_days = days_difference(
-      formattedStartDate,
-      formattedEndDate
-    );
-
-    // ---- valid date
-    if (moment(formattedStartDate).isAfter(formattedEndDate)) {
-      return res.status(400).send("Start date must be before end date");
-    }
+    const booked_for_no_days = days_difference(startDate, endDate);
+    
 
     // ---- Get the property price
     const property_price = await propertyPrice(property_id);
 
     const new_rent = new RentalSchema({
       property_id: property_id,
-      start_date: formattedStartDate,
-      end_date: formattedEndDate,
+      start_date: startDate,
+      end_date: endDate,
       tenant: tenant,
       total_cost: booked_for_no_days * property_price,
       status: "active",
@@ -98,7 +88,9 @@ export const rentAProperty = async (req, res) => {
 
     await new_rent.save();
 
-    return res.status(200).json({message:"Property Rented successfully !!",success:true});
+    return res
+      .status(200)
+      .json({ message: "Property Rented successfully !!", success: true });
 
     // --- keep the rented_property for 90 days from the end date and if user rents the same property again with in  90 days
   } catch (error) {
