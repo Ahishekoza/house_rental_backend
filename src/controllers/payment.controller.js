@@ -1,10 +1,35 @@
 import Stripe from "stripe";
 import dotenv from "dotenv";
-import { format_Date } from "../utils/format_date.js";
+import { PaymentSchema } from "../models/payment.model.js";
+import { PropertySchema } from "../models/property.model.js";
 
 dotenv.config();
 
 const stripe = new Stripe(String(process.env.STRIPE_SECRET_KEY));
+
+export const getPropertyOwner = async (propertyId) => {
+  try {
+    if (!propertyId) {
+      throw new Error("No property specified");
+    }
+
+    const query = { _id: propertyId };
+
+    const property = await PropertySchema.findOne(query).populate("owner", {
+      email: 1,
+    });
+
+    if (!property || !property.owner) {
+      throw new Error("Property owner not found");
+    }
+
+    return property.owner;
+  } catch (error) {
+    console.error(error.message);
+    return null; // return null if there's an error
+  }
+};
+
 
 export const checkOutSession = async (req, res) => {
   // --- verify token and you will receive the user_Id
@@ -18,8 +43,6 @@ export const checkOutSession = async (req, res) => {
       startDate,
       endDate,
     } = req.body;
-
-
 
     const customer = await stripe.customers.create({
       metadata: {
@@ -37,9 +60,6 @@ export const checkOutSession = async (req, res) => {
           price_data: {
             currency: "usd",
             product_data: {
-              metadata: {
-                id: propertyId,
-              },
               name: propertyName,
               images: [...propertyImages],
               description: propertyDescription,
@@ -53,6 +73,9 @@ export const checkOutSession = async (req, res) => {
       customer: customer?.id,
       success_url: `${process.env.CLIENT_URL}/SuccessFullCheckOut/${propertyId}/${startDate}/${endDate}`,
       cancel_url: `${process.env.CLIENT_URL}/FailedCheckOut`,
+      metadata: {
+        propertyId: propertyId, // Adding propertyId at the session level
+      },
     });
 
     console.log(session);
@@ -75,41 +98,53 @@ export const webhook = async (req, res) => {
     console.log(signature);
 
     try {
-      // Verify and construct the event using the raw body and Stripe webhook secret
       event = stripe.webhooks.constructEvent(
-        req.body, // this should be the raw body, not a parsed JSON object
+        req.body,
         signature,
         WebhookSecret
       );
 
-      // Extract the data and event type
       data = event.data.object;
       eventType = event.type;
     } catch (err) {
-      // If verification fails, log the error and return a 400 response
       console.error(
         `⚠️  Webhook signature verification failed: ${err.message}`
       );
       return res.sendStatus(400);
     }
   } else {
-    // If no secret, use parsed body (only for development, not recommended for production)
     data = req.body.data.object;
     eventType = req.body.type;
   }
 
-  // Handle specific events, e.g., checkout.session.completed
   if (eventType === "checkout.session.completed") {
     stripe.customers
       .retrieve(data.customer)
       .then(async (customer) => {
         try {
-          // Log customer info and process the order
-          console.log("DATA", data);
-          console.log("CUSTOMER: ", customer);
-          // createOrder(customer, data); // Assuming you have a createOrder function
+          const owner = await getPropertyOwner(data?.metadata?.propertyId);
+
+          if (owner?.email) {
+            const paymentSchemma = new PaymentSchema({
+              propertyId: data?.metadata?.propertyId,
+              owner: owner.email, // Using the correct owner email
+              tenant: customer.email,
+              totalAmount: data?.amount_total / 100,
+              customerId: customer?.id,
+              tenantPhoneNumber: customer?.phone,
+            });
+
+            await paymentSchemma.save();
+
+            return res
+              .status(200)
+              .json({ message: "Payment successful", payment: paymentSchemma });
+          } else {
+            return res.status(400).send("Property owner not found.");
+          }
         } catch (err) {
           console.error("Error processing order: ", err);
+          return res.status(500).send("Error processing order.");
         }
       })
       .catch((err) =>
@@ -117,6 +152,6 @@ export const webhook = async (req, res) => {
       );
   }
 
-  // Send a response to acknowledge receipt of the webhook
   res.status(200).end();
 };
+

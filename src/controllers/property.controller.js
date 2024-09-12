@@ -178,7 +178,7 @@ export const getSingleProperty = async (req, res) => {
     };
 
     const property = await PropertySchema.findOne(query).populate("owner", {
-      name: 1,
+      email: 1,
     });
 
     return res.status(200).json(property);

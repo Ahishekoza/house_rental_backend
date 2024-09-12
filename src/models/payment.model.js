@@ -21,7 +21,7 @@ const paymentSchema =  new Schema({
         type:String,
         required:true
     },
-    phoneNumber:{
+    tenantPhoneNumber:{
         type:Number,
         required:true
     }
@@ -32,4 +32,4 @@ const paymentSchema =  new Schema({
 })
 
 
-const PaymentSchema = mongoose.model('Payment', paymentSchema)
+export const PaymentSchema = mongoose.model('Payment', paymentSchema)
