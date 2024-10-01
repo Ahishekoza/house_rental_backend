@@ -23,7 +23,7 @@ export const registerProperty = async (req, res) => {
       propertyType,
       rooms_beds,
       features,
-      totalGuests
+      totalGuests,
     } = req.body;
     const imageFiles = req.files;
 
@@ -65,7 +65,7 @@ export const registerProperty = async (req, res) => {
       rooms_beds: rooms_beds,
       images: imageUrls,
       features: features || [],
-      totalGuests: totalGuests
+      totalGuests: totalGuests,
     });
 
     await newProperty.save();
@@ -84,16 +84,13 @@ export const getProperties = async (req, res) => {
       city,
       country,
       minPrice,
-      maxPrice,
       propertyType,
       rooms,
       beds,
       bathrooms,
       features,
-      totalGuests
+      totalGuests,
     } = req.query;
-
-  
 
     let query = {};
 
@@ -105,20 +102,19 @@ export const getProperties = async (req, res) => {
       query["location.country"] = new RegExp(country, "i");
     }
 
-
     if (totalGuests) {
-      query.totalGuests = { $gte: parseInt(totalGuests,10) };
+      query.totalGuests = { $gte: parseInt(totalGuests, 10) };
     }
-    
 
-    if (minPrice || maxPrice) {
-      query.price = {};
+    if (minPrice) {
       // query.price={
       //   $gte : minPrice,
       //   $lte : maxPrice
       // }
-      if (minPrice) query.price.$gte = parseInt(minPrice);
-      if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+      query.price = {
+        $gte: parseInt(minPrice),
+        $lte: 100000,
+      };
     }
 
     if (rooms) {
@@ -143,7 +139,6 @@ export const getProperties = async (req, res) => {
 
       query.features = { $in: selectedFeatures };
     }
-
 
     const page = parseInt(req.params.page, 10) || 1;
     const pageSize = 10;
@@ -262,7 +257,7 @@ export const deleteImages = async (req, res) => {
   // --- get the image public _ id from and delete the image from cloudinary and pull that image from images attribute
   try {
     const { property_id, image_public_id } = req.params;
-    
+
     await deleteImageFromCloudinary([image_public_id]);
 
     await PropertySchema.findByIdAndUpdate(
@@ -271,8 +266,7 @@ export const deleteImages = async (req, res) => {
       { new: true }
     );
 
-    return res.status(200).send("Image deleted successfully")
-
+    return res.status(200).send("Image deleted successfully");
   } catch (error) {
     return res.status(500).send(error.message);
   }
